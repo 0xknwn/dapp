@@ -1,5 +1,7 @@
 import { useState } from "react";
+import { injectSmartr } from "@0xknwn/connect";
 
+injectSmartr();
 function App() {
   const [count, setCount] = useState(0);
 
