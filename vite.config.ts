@@ -10,6 +10,10 @@ export default defineConfig({
         target: "http://localhost:3000",
         changeOrigin: true,
       },
+      "/rpc": {
+        target: "http://localhost:5050",
+        changeOrigin: true,
+      },
     },
   },
 });
