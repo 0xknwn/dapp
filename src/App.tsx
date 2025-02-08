@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { injectSmartr } from "@0xknwn/connect";
+import { injectSmartr, injectUI } from "@0xknwn/connect-core";
 import Loader from "./Loader";
+import feedback from "./feedback";
 
 interface Window {
   starknet_smartr: {
@@ -14,7 +15,14 @@ interface Window {
   };
 }
 
-injectSmartr();
+injectUI({
+  i: 2,
+  update: (i: number) => {
+    console.log("i:", i);
+    feedback(i);
+  },
+});
+
 function App() {
   const [count, setCount] = useState(0);
 
