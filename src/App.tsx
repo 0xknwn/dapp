@@ -1,21 +1,22 @@
 import { useState } from "react";
-import { connect, disconnect, type StarknetWindowObject } from "starknetkit";
+import { connect, disconnect } from "starknetkit";
 import { InjectedConnector } from "starknetkit/injected";
+import { useWallet } from "./wallet_context";
 
 function App() {
+  const {
+    wallet: cryptoWallet,
+    connectorData: cryptoConnectorData,
+    setWallet,
+    setConnectorData,
+  } = useWallet();
   const [count, setCount] = useState(0);
-  const [connection, setConnection] = useState(
-    null as StarknetWindowObject | null
-  );
-  const [address, setAddress] = useState(undefined as string | undefined);
-  const [chainID, setChainID] = useState(0n as bigint | undefined);
 
   const connectOrDisconnectWallet = async () => {
-    if (connection) {
+    if (cryptoWallet) {
       await disconnect();
-      setConnection(null);
-      setAddress(undefined);
-      setChainID(undefined);
+      setWallet(null);
+      setConnectorData({});
       return;
     }
     const { wallet, connectorData } = await connect({
@@ -29,20 +30,25 @@ function App() {
     });
 
     if (wallet && connectorData) {
-      setConnection(wallet);
-      setAddress(connectorData.account);
-      setChainID(connectorData?.chainId);
+      setWallet(wallet);
+      setConnectorData(connectorData);
     }
   };
   return (
     <>
       <button onClick={connectOrDisconnectWallet}>
-        {connection ? "Disconnect" : "Connect"}
+        {cryptoConnectorData?.account ? "Disconnect" : "Connect"}
       </button>
-      <div>{connection && connection.name}</div>
-      <div>{connection && connection.version}</div>
-      <div>{address}</div>
-      <div>{chainID}</div>
+      {cryptoWallet?.name ? (
+        <>
+          <div>wallet: {cryptoWallet?.name}</div>
+          <div>version: {cryptoWallet?.version}</div>
+          <div>account: {cryptoConnectorData?.account}</div>
+          <div>chain: {cryptoConnectorData?.chainId}</div>
+        </>
+      ) : (
+        <></>
+      )}
       <div className="card">
         <button onClick={() => setCount((count) => count + 1)}>
           count is {count}
