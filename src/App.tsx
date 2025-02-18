@@ -1,4 +1,4 @@
-import { use, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import WalletButton from "./wallet_button";
 import { useWallet } from "./wallet_context";
 import { num } from "starknet";
