@@ -1,58 +1,68 @@
-import { useState } from "react";
-import { connect, disconnect } from "starknetkit";
-import { InjectedConnector } from "starknetkit/injected";
+import { useEffect, useState } from "react";
+import WalletButton from "./wallet_button";
 import { useWallet } from "./wallet_context";
-
+import { num } from "starknet";
 function App() {
-  const {
-    wallet: cryptoWallet,
-    connectorData: cryptoConnectorData,
-    setWallet,
-    setConnectorData,
-  } = useWallet();
   const [count, setCount] = useState(0);
+  const [refresh, setRefresh] = useState(0);
 
-  const connectOrDisconnectWallet = async () => {
-    if (cryptoWallet) {
-      await disconnect();
-      setWallet(null);
-      setConnectorData({});
+  const { isCounterDeployed, counter, account } = useWallet();
+  useEffect(() => {
+    const fetchCounter = async () => {
+      if (!counter || !account) {
+        setCount(0);
+        return;
+      }
+      const call = counter.populate("get", {});
+      const result = await account.callContract(call, "pending");
+      setCount(Number(num.toBigInt(result[0])));
+    };
+    fetchCounter();
+  }, [counter, account, refresh]);
+
+  const increment = async () => {
+    if (!counter || !account) {
       return;
     }
-    const { wallet, connectorData } = await connect({
-      modalMode: "alwaysAsk",
-      connectors: [
-        new InjectedConnector({ options: { id: "argentX" } }),
-        new InjectedConnector({
-          options: { id: "braavos" },
-        }),
-      ],
-    });
-
-    if (wallet && connectorData) {
-      setWallet(wallet);
-      setConnectorData(connectorData);
+    try {
+      const call = counter.populate("increment", {});
+      const { transaction_hash } = await account.execute(call);
+      console.log(transaction_hash);
+      await account.waitForTransaction(transaction_hash);
+      setRefresh((r) => r + 1);
+    } catch (e) {
+      console.error(e);
     }
   };
+
+  const reset = async () => {
+    if (!counter || !account) {
+      return;
+    }
+    try {
+      const call = counter.populate("reset", {});
+      const { transaction_hash } = await account.execute(call);
+      console.log(transaction_hash);
+      await account.waitForTransaction(transaction_hash);
+      setRefresh((r) => r + 1);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
   return (
     <>
-      <button onClick={connectOrDisconnectWallet}>
-        {cryptoConnectorData?.account ? "Disconnect" : "Connect"}
-      </button>
-      {cryptoWallet?.name ? (
-        <>
-          <div>wallet: {cryptoWallet?.name}</div>
-          <div>version: {cryptoWallet?.version}</div>
-          <div>account: {cryptoConnectorData?.account}</div>
-          <div>chain: {cryptoConnectorData?.chainId}</div>
-        </>
-      ) : (
-        <></>
-      )}
+      <WalletButton />
       <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
+        {isCounterDeployed ? (
+          <>
+            <button onClick={increment}>increment</button>
+            <button onClick={reset}>reset</button>
+          </>
+        ) : (
+          <div>Counter is not deployed or we could not get its status.</div>
+        )}
+        <div>Counter value is: {count}</div>
       </div>
     </>
   );
