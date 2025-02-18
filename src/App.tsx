@@ -10,6 +10,7 @@ function App() {
   useEffect(() => {
     const fetchCounter = async () => {
       if (!counter || !account) {
+        setCount(0);
         return;
       }
       const call = counter.populate("get", {});
@@ -19,7 +20,7 @@ function App() {
     fetchCounter();
   }, [counter, account, refresh]);
 
-  const add = async () => {
+  const increment = async () => {
     if (!counter || !account) {
       return;
     }
@@ -33,12 +34,31 @@ function App() {
       console.error(e);
     }
   };
+
+  const reset = async () => {
+    if (!counter || !account) {
+      return;
+    }
+    try {
+      const call = counter.populate("reset", {});
+      const { transaction_hash } = await account.execute(call);
+      console.log(transaction_hash);
+      await account.waitForTransaction(transaction_hash);
+      setRefresh((r) => r + 1);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
   return (
     <>
       <WalletButton />
       <div className="card">
         {isCounterDeployed ? (
-          <button onClick={add}>increment</button>
+          <>
+            <button onClick={increment}>increment</button>
+            <button onClick={reset}>reset</button>
+          </>
         ) : (
           <div>Counter is not deployed or we could not get its status.</div>
         )}
