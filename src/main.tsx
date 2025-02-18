@@ -1,12 +1,12 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import { WalletProvider } from "./wallet.tsx";
-import App from "./App.tsx";
+import { WalletProvider } from "./wallet";
+import Router from "./router";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <WalletProvider>
-      <App />
+      <Router />
     </WalletProvider>
   </StrictMode>
 );
